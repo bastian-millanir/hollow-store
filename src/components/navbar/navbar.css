@@ -1,0 +1,65 @@
+* {
+    font-family: 'Cinzel', serif !important;
+}
+
+
+#logo-brand-nav {
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+}
+
+#about-nav, #contacto-nav {
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+
+    p {
+        font-family: 'bold', sans-serif;
+        color: #333;
+        line-height: 1.6;
+        margin: 20px;
+        text-align: center;
+        font-size: 18px;
+        max-width: 600px;
+    }
+
+}
+
+#banner-anuncios {
+    background: linear-gradient(90deg, #6f42c1, #8e44ad, #4b2354, #6f42c1);
+    background-size: 400% 400%;
+    color: #fff;
+    font-size: 14px;
+    padding: 4px 0;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    letter-spacing: 0.5px;
+    animation: morado-gradient 8s ease infinite;
+}
+
+@keyframes morado-gradient {
+    0% {
+        background-position: 0 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0 50%;
+    }
+}
+
+h1 {
+    font-family: 'extrabold', sans-serif;
+    color: #0b070e;
+    text-align: center;
+    margin-top: 20px;
+}
+
+#pre-inscripcion-text {
+    font-family: 'Montserrat', cursive;
+    font-size: 1.5rem;
+    color: #bfa5e2;
+    letter-spacing: 2px;
+    padding: 10px;
+}
