@@ -1,0 +1,44 @@
+#title-header {
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 8px #000;
+}
+
+#subtitle-header {
+    font-size: 1.2rem;
+    text-shadow: 1px 1px 6px #000;
+}
+
+#contador-regresivo {
+    margin-top: 20px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    background: rgba(34, 34, 34, 0.7);
+    border-radius: 12px;
+    display: inline-block;
+    padding: 12px 28px;
+    box-shadow: 0 2px 8px #000;
+}
+
+#hearo-header-landing {
+    background: url('../../../assets/logo.png.jpeg') no-repeat center center;
+    background-size: cover;
+    height: 400px;
+    position: relative;
+}
+
+#overlay-hero-header {
+    background-color: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+#body-header {
+    position: relative;
+    z-index: 1;
+}
+
