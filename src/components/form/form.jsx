@@ -1,7 +1,7 @@
 import { useState } from "react";
 const EMAIL_RE = /^[^\\s@]+@[^\\s@]+\\.[^\\s@](2,)$/i;
 
-function from()
+function From()
 {
    const[values,setValues] = useState({nombre:'', email: '',mensaje: ''}); //valores por defecto  
    const [touched,setTouched] = useState({nombre:false, email:false,mensaje:false})
