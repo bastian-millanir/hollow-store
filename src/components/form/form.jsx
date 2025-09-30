@@ -1,5 +1,6 @@
 import { useState } from "react";
-const EMAIL_RE = /^[^\\s@]+@[^\\s@]+\\.[^\\s@](2,)$/i;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+
 
 function Form()
 {
@@ -51,28 +52,78 @@ function Form()
                 <div className="col-lg-8 mt-5 mt-lg-0">
                     <h2>Contacto</h2>
                     <form onSubmit={handleSubmit} noValidate>
-                        <div className="mb-3">
-                            <label htmlFor="nombre" className="form-label">Nombre</label>
-                         <input type="text" className={fieldClass('nombre')} id="nombre" name="nombre" value={values.nombre} onChange={handlerChange} onBlur={handleBlur} required />
-                          ((touched.nombre || submitted) && errors.nombre && (
-                            <div className="invalid-feedback">{errors.nombre}</div>
-                          ))
-                          ((touched.nombre || submitted) && !errors.nombre && (
-                            <div className="valid-feedback">¡Se ve bien!</div>
-                          ))
-                          {}
-                         </div>
-                         <div className="d-grid gap-3 mb-3">
-                            <button> type= </button>
+                            <div className="mb-3">
+                                <label htmlFor="nombre" className="form-label">Nombre: </label>
+                                <input 
+                                id="nombre"
+                                name="nombre"
+                                type="text" 
+                                className={fieldClass('nombre')}
+                                placeholder="Ingrese nombre"
+                                value={values.nombre}
+                                onChange={handlerChange}
+                                onBlur={handleBlur}
+                                />
+                                {(touched.nombre || submitted) && errors.nombre && (
+                                    <div className="invalid-feedback">{errors.nombre}
+                                    </div>
+                                )}
+                                {(touched.nombre || submitted) && !errors.nombre && (
+                                    <div className="valid-feedback">{errors.nombre}
+                                    </div>
+                                )}
                             </div>
-                    </form>
-                      </div>
-                      </div>
-                      </div>
-                      </section>    
-
+                            <div className="mb-3">
+                                <label htmlFor="email" className="form-label">Email: </label>
+                                <input 
+                                id="email"
+                                name="email"
+                                type="text" 
+                                className={fieldClass('email')}
+                                placeholder="Ingrese email"
+                                value={values.email}
+                                onChange={handlerChange}
+                                onBlur={handleBlur}
+                                />
+                                {(touched.email || submitted) && errors.email && (
+                                    <div className="invalid-feedback">{errors.email}
+                                    </div>
+                                )}
+                                {(touched.email || submitted) && !errors.email && (
+                                    <div className="valid-feedback">{errors.email}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="mb-3">
+                                <label htmlFor="mensaje" className="form-label">mensaje: </label>
+                                <input 
+                                id="mensaje"
+                                name="mensaje"
+                                rows="4" 
+                                className={fieldClass('mensaje')}
+                                placeholder="Ingrese mensaje"
+                                value={values.mensaje}
+                                onChange={handlerChange}
+                                onBlur={handleBlur}
+                                />
+                                {(touched.mensaje || submitted) && errors.mensaje && (
+                                    <div className="invalid-feedback">{errors.mensaje}
+                                    </div>
+                                )}
+                                {(touched.mensaje || submitted) && !errors.mensaje && (
+                                    <div className="valid-feedback">{errors.mensaje}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="d-grid d-sm-flex gap-3">
+                                <button type="submit" className="btn btn-primary btn-lg">Enviar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
     );
-
   
 }
 
