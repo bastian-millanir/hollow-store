@@ -3,6 +3,8 @@ import './components/navbar/navbar.css'
 import Productos from "./components/producto/Productos.jsx";
 import HeroHeader from "./components/home/header/heroHeader.jsx";
 import Form from "./components/form/Form.jsx";
+import './App.css';
+
 
 function App() {
 
