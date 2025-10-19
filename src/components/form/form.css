@@ -1,0 +1,33 @@
+#pre-register-form {
+    min-width: 350px;
+    max-width: 500px;
+    border: 3px solid #343a40;
+    border-radius: 20px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    background: #222;
+    color: #fff;
+}
+
+#title-form {
+    font-family: 'Montserrat', sans-serif;
+    letter-spacing: 1px;
+}
+
+#button-form {
+    background: linear-gradient(90deg, #6f42c1, #4b2354);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-family: 'Montserrat', cursive;
+
+}
+
+#button-form:hover {
+    background: linear-gradient(90deg, #8e44ad, #6f42c1);
+    box-shadow: 0 0 15px rgba(191, 165, 226, 0.8);
+}
