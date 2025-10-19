@@ -11,13 +11,13 @@ function Navbar() {
                     </button>
 
                     <div className="d-none d-lg-flex align-items-center text-center">
-                        <a id="contacto-nav" className="nav-link px-3" href="#">Contacto</a>
-                        <a id="logo-brand-nav" className="navbar-brand mx-3" href="#">Sleepy Hollow</a>
-                        <a id="about-nav" className="nav-link px-3" href="#">Quienes somos</a>
+                        <a id="contacto-nav" className="nav-link px-3" href="/contacto">Contacto</a>
+                        <a id="logo-brand-nav" className="navbar-brand mx-3" href="/">Sleepy Hollow</a>
+                        <a id="about-nav" className="nav-link px-3" href="/about">Quienes somos</a>
                     </div>
 
                     <div className="d-lg-none flex-grow-1 text-center">
-                        <a id="logo-brand-nav" className="navbar-brand" href="#">Sleepy Hollow</a>
+                        <a id="logo-brand-nav-mobile" className="navbar-brand" href="/">Sleepy Hollow</a>
                     </div>
 
                 </div>
@@ -33,10 +33,10 @@ function Navbar() {
                     <div className="offcanvas-body">
                         <ul className="navbar-nav justify-content-end flex-grow-1 pe-3">
                             <li className="nav-item">
-                                <a id="contacto-nav-mobile" className="nav-link" href="#">Contacto</a>
+                                <a id="contacto-nav-mobile" className="nav-link" href="/contacto">Contacto</a>
                             </li>
                             <li className="nav-item">
-                                <a id="about-nav-mobile" className="nav-link" href="#">Quienes somos</a>
+                                <a id="about-nav-mobile" className="nav-link" href="/about">Quienes somos</a>
                             </li>
                         </ul>
                     </div>
