@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest --environment jsdom"
+    "test": "vitest --environment jsdom",
+    "start": "react-scripts start"
   },
   "dependencies": {
     "bootstrap": "^5.3.8",
