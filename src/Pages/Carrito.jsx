@@ -1,83 +1,42 @@
-import { createContext, useState, useEffect } from "react";
+import { useContext } from "react";
+import { CartContext } from "../Context/Cartcontext";
 
-export const CartContext = createContext();
-
-export function CartProvider({ children }) {
-    const [cart, setCart] = useState([]);
-
-    // 🔥 Cargar carrito desde localStorage al iniciar
-    useEffect(() => {
-        const saved = localStorage.getItem("cart");
-        if (saved) setCart(JSON.parse(saved));
-    }, []);
-
-    // 🔥 Guardar carrito cada vez que cambie
-    useEffect(() => {
-        localStorage.setItem("cart", JSON.stringify(cart));
-    }, [cart]);
-
-    // 🛒 AGREGAR o INCREMENTAR cantidad
-    const addToCart = (item) => {
-        setCart((prev) => {
-            const exists = prev.find((p) => p.id === item.id);
-            if (exists) {
-                return prev.map((p) =>
-                    p.id === item.id ? { ...p, cantidad: p.cantidad + 1 } : p
-                );
-            }
-            return [...prev, { ...item, cantidad: 1 }];
-        });
-    };
-
-    // ➕ Incrementar cantidad
-    const increaseQuantity = (id) => {
-        setCart((prev) =>
-            prev.map((item) =>
-                item.id === id
-                    ? { ...item, cantidad: item.cantidad + 1 }
-                    : item
-            )
-        );
-    };
-
-    // ➖ Reducir cantidad
-    const decreaseQuantity = (id) => {
-        setCart((prev) =>
-            prev.map((item) =>
-                item.id === id && item.cantidad > 1
-                    ? { ...item, cantidad: item.cantidad - 1 }
-                    : item
-            )
-        );
-    };
-
-    //  Quitar producto por ID
-    const removeFromCart = (id) =>
-        setCart((prev) => prev.filter((item) => item.id !== id));
-
-    //  Vaciar todo el carrito
-    const clearCart = () => setCart([]);
-
-    // Total final
-    const cartTotal = cart.reduce(
-        (acc, item) => acc + item.precio * item.cantidad,
-        0
-    );
+function Carrito() {
+    const {
+        cart,
+        addToCart,
+        decreaseItem,
+        removeFromCart,
+        clearCart,
+        cartTotal
+    } = useContext(CartContext);
 
     return (
-        <CartContext.Provider
-            value={{
-                cart,
-                addToCart,
-                removeFromCart,
-                increaseQuantity,
-                decreaseQuantity,
-                clearCart,
-                cartTotal,
-            }}
-        >
-            {children}
-        </CartContext.Provider>
+        <section>
+            <h2>Carrito</h2>
+
+            {cart.length === 0 && <p>El carrito está vacío.</p>}
+
+            {cart.map(item => (
+                <div key={item.id}>
+                    <img src={item.imagen} width={80} />
+                    <h4>{item.nombre}</h4>
+
+                    <button onClick={() => decreaseItem(item.id)}>-</button>
+                    <span>{item.cantidad}</span>
+                    <button onClick={() => addToCart(item)}>+</button>
+
+                    <button onClick={() => removeFromCart(item.id)}>Eliminar</button>
+
+                    <p>Total: ${item.precio * item.cantidad}</p>
+                </div>
+            ))}
+
+            <hr />
+            <h3>Total general: ${cartTotal}</h3>
+            <button onClick={clearCart}>Vaciar carrito</button>
+        </section>
     );
 }
-export default CartContext;
+
+export default Carrito;
