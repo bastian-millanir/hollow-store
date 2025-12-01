@@ -1,193 +1,155 @@
-// src/pages/LoginAvanzado.jsx
-import { useState, useContext } from "react";
-import { AuthContext } from "../Context/Authcontext";
+import { useState } from "react";
+import { useAuth } from "../Context/Authcontext";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+export default function Login() {
+  const { login } = useAuth();
 
-export default function LoginAvanzado() {
-    const { login: authLogin } = useContext(AuthContext);
+  const [form, setForm] = useState({ email: "", password: "", remember: false });
+  const [touched, setTouched] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
 
-    const [values, setValues] = useState({
-        email: "",
-        password: "",
-        remember: false,
-    });
+  // Validaciones
+  const validate = () => {
+    const errors = {};
 
-    const [touched, setTouched] = useState({});
-    const [submitted, setSubmitted] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [serverError, setServerError] = useState("");
+    if (!form.email.trim()) {
+      errors.email = "El correo es obligatorio.";
+    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+      errors.email = "Formato de correo inválido.";
+    }
 
-    const errors = {
-        email:
-            values.email.trim() === ""
-                ? "El email es obligatorio"
-                : EMAIL_RE.test(values.email)
-                ? ""
-                : "Formato de correo incorrecto",
-        password:
-            values.password.trim() === "" ? "La contraseña es obligatoria" : "",
-    };
+    if (!form.password.trim()) {
+      errors.password = "La contraseña es obligatoria.";
+    } else if (form.password.length < 4) {
+      errors.password = "Debe tener al menos 4 caracteres.";
+    }
 
-    const isValid = (f) => !errors[f];
+    return errors;
+  };
 
-    const fieldClass = (f) => {
-        const show = touched[f] || submitted;
-        if (!show) return "form-control";
-        return isValid(f) ? "form-control is-valid" : "form-control is-invalid";
-    };
+  const errors = validate();
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setValues((v) => ({
-            ...v,
-            [name]: type === "checkbox" ? checked : value,
-        }));
-        setTouched((t) => ({ ...t, [name]: true }));
-    };
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+  };
 
-    const handleBlur = (e) => {
-        setTouched((t) => ({ ...t, [e.target.name]: true }));
-    };
+  const handleBlur = (e) => {
+    setTouched({ ...touched, [e.target.name]: true });
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSubmitted(true);
-        setServerError("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitted(true);
 
-        const allValid = isValid("email") && isValid("password");
-        if (!allValid) return;
+    if (Object.keys(errors).length > 0) return;
 
-        setLoading(true);
-        try {
-            // Aquí conectas a tu backend
-            const resp = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: values.email,
-                    password: values.password,
-                }),
-            });
+    setLoading(true);
+    setServerError("");
 
-            if (!resp.ok) {
-                let msg = "Error en el servidor";
-                try {
-                    const data = await resp.json();
-                    msg = data.message || msg;
-                } catch (e) {}
-                throw new Error(msg);
-            }
+    try {
+      //  Llamamos al AuthContext, este ya guardará token y user
+      await login(form.email, form.password, form.remember);
+    } catch (err) {
+      setServerError(err.message || "Error inesperado.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            const data = await resp.json(); // backend debe devolver {token, user}
+  const fieldClass = (field) =>
+    submitted || touched[field]
+      ? errors[field]
+        ? "border-red-500"
+        : "border-purple-500"
+      : "border-gray-600";
 
-            // === Login en el contexto ===
-            if (authLogin) {
-                await authLogin(data.user, data.token, values.remember);
-            }
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-black">
+      <div className="bg-[#111] shadow-2xl rounded-2xl p-10 w-full max-w-md border border-gray-800">
 
-            // === Guardar datos de sesión ===
-            if (values.remember) {
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("user", JSON.stringify(data.user));
-            } else {
-                sessionStorage.setItem("token", data.token);
-                sessionStorage.setItem("user", JSON.stringify(data.user));
-            }
+        <h2 className="text-3xl font-bold text-center text-purple-400 mb-8">
+          Iniciar Sesión
+        </h2>
 
-            alert("Inicio de sesión exitoso");
+        {serverError && (
+          <div className="bg-red-900/40 text-red-400 border border-red-700 p-3 mb-4 rounded-lg text-sm">
+            {serverError}
+          </div>
+        )}
 
-            // Redirige si quieres:
-            window.location.href = "/";
-        } catch (err) {
-            console.error(err);
-            setServerError(err.message || "Credenciales incorrectas");
-        } finally {
-            setLoading(false);
-        }
-    };
+        <form onSubmit={handleSubmit} className="space-y-6">
 
-    return (
-        <section className="container py-5">
-            <div className="row justify-content-center">
-                <div className="col-12 col-md-8 col-lg-6">
-                    <div className="card p-4 rounded-4 shadow-sm">
-                        <h2 className="text-center mb-4">Iniciar Sesión</h2>
+          {/* Email */}
+          <div className="flex flex-col">
+            <label className="text-gray-300 mb-1">Correo electrónico</label>
+            <input
+              type="email"
+              name="email"
+              className={`p-3 rounded-lg bg-black border ${fieldClass(
+                "email"
+              )} text-white placeholder-gray-500 focus:outline-none`}
+              placeholder="correo@ejemplo.com"
+              value={form.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+            />
+            {(touched.email || submitted) && errors.email && (
+              <span className="text-red-500 text-sm mt-1">{errors.email}</span>
+            )}
+          </div>
 
-                        {serverError && (
-                            <div className="alert alert-danger">{serverError}</div>
-                        )}
+          {/* Password */}
+          <div className="flex flex-col">
+            <label className="text-gray-300 mb-1">Contraseña</label>
+            <input
+              type="password"
+              name="password"
+              className={`p-3 rounded-lg bg-black border ${fieldClass(
+                "password"
+              )} text-white placeholder-gray-500 focus:outline-none`}
+              placeholder="********"
+              value={form.password}
+              onChange={handleChange}
+              onBlur={handleBlur}
+            />
+            {(touched.password || submitted) && errors.password && (
+              <span className="text-red-500 text-sm mt-1">
+                {errors.password}
+              </span>
+            )}
+          </div>
 
-                        <form onSubmit={handleSubmit} noValidate>
-                            <div className="mb-3">
-                                <label className="form-label">Email</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    className={fieldClass("email")}
-                                    placeholder="correo@ejemplo.com"
-                                    value={values.email}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                />
-                                {(touched.email || submitted) && errors.email && (
-                                    <div className="invalid-feedback">{errors.email}</div>
-                                )}
-                                {(touched.email || submitted) && !errors.email && (
-                                    <div className="valid-feedback">Correcto</div>
-                                )}
-                            </div>
+          {/* Remember Me */}
+          <label className="flex items-center gap-2 cursor-pointer select-none text-gray-300">
+            <input
+              type="checkbox"
+              name="remember"
+              checked={form.remember}
+              onChange={handleChange}
+              className="accent-purple-600"
+            />
+            Recordarme
+          </label>
 
-                            <div className="mb-3">
-                                <label className="form-label">Contraseña</label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    className={fieldClass("password")}
-                                    placeholder="Ingresa tu contraseña"
-                                    value={values.password}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                />
-                                {(touched.password || submitted) && errors.password && (
-                                    <div className="invalid-feedback">{errors.password}</div>
-                                )}
-                                {(touched.password || submitted) && !errors.password && (
-                                    <div className="valid-feedback">Correcto</div>
-                                )}
-                            </div>
-
-                            <div className="form-check mb-3">
-                                <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    name="remember"
-                                    checked={values.remember}
-                                    onChange={handleChange}
-                                />
-                                <label className="form-check-label">
-                                    Recordarme
-                                </label>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="btn btn-primary w-100 btn-lg"
-                            >
-                                {loading ? "Ingresando..." : "Entrar"}
-                            </button>
-                        </form>
-
-                        <p className="text-center mt-3">
-                            ¿No tienes cuenta?{" "}
-                            <a href="/register" className="text-decoration-none">
-                                Crear una cuenta
-                            </a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    );
+          {/* Botón */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 rounded-lg bg-purple-600 hover:bg-purple-700 transition font-semibold text-white shadow-lg"
+          >
+            {loading ? (
+              <div className="flex justify-center">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : (
+              "Ingresar"
+            )}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
 }

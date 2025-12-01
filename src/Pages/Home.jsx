@@ -6,7 +6,7 @@ import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../Context/Authcontext";
 import { CartContext } from "../Context/Cartcontext";
 import "./home.css";
 

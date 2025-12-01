@@ -1,115 +1,115 @@
-import { createContext, useState, useEffect } from "react";
+// src/context/AuthContext.jsx
+import { createContext, useState, useEffect, useContext } from "react";
 
 export const AuthContext = createContext();
+export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
-    const [user, setUser] = useState(null);  // usuario completo
-    const [token, setToken] = useState(null); // JWT
-    const [loading, setLoading] = useState(true);
+  // ===================================================
+  // Cargar token y usuario al iniciar app
+  // ===================================================
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userStored = localStorage.getItem("user");
 
-    // Al iniciar: revisar si existe un token guardado
-    useEffect(() => {
-        const savedToken = localStorage.getItem("authToken");
-        const savedUser = localStorage.getItem("authUser");
+    if (token && userStored) {
+      setUser(JSON.parse(userStored));
+      setAuthLoading(false);
+      return;
+    }
 
-        if (savedToken && savedUser) {
-            setToken(savedToken);
-            setUser(JSON.parse(savedUser));
+    setAuthLoading(false);
+  }, []);
 
-            // Verificar con backend que el token siga siendo válido
-            verifyToken(savedToken);
-        } else {
-            setLoading(false);
-        }
-    }, []);
+  // ===================================================
+  // LOGIN
+  // ===================================================
+  const login = async (email, password, remember = false) => {
+    const res = await fetch("/api/users/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-    // Verificar token con backend
-    const verifyToken = async (jwt) => {
-        try {
-            const res = await fetch("http://localhost:3000/api/auth/verify", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${jwt}`,
-                },
-            });
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || "Credenciales incorrectas");
+    }
 
-            if (!res.ok) throw new Error("Token inválido");
+    const data = await res.json(); // contiene: { token, user }
 
-            setLoading(false);
-        } catch (error) {
-            console.error("Token expirado o inválido:", error);
-            logout();
-        }
-    };
+    const { token, user } = data;
 
-    //  LOGIN
-    const login = async (email, password) => {
-        try {
-            const res = await fetch("http://localhost:3000/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-            });
+    if (!token || !user) {
+      throw new Error("Respuesta inesperada del servidor");
+    }
 
-            if (!res.ok) throw new Error("Credenciales incorrectas");
+    // Si marcó recordar → localStorage
+    if (remember) {
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      sessionStorage.setItem("token", token);
+      sessionStorage.setItem("user", JSON.stringify(user));
+    }
 
-            const data = await res.json();
+    setUser(user);
+  };
 
-            setUser(data.user);
-            setToken(data.token);
+  // ===================================================
+  // REGISTER
+  // ===================================================
+  const register = async (formData) => {
+    const res = await fetch("/api/users/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
 
-            // Guardar
-            localStorage.setItem("authUser", JSON.stringify(data.user));
-            localStorage.setItem("authToken", data.token);
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || "No se pudo registrar");
+    }
 
-            return { ok: true };
-        } catch (error) {
-            return { ok: false, error: error.message };
-        }
-    };
+    const userCreated = await res.json();
 
-    // REGISTER
-    const register = async (form) => {
-        try {
-            const res = await fetch("http://localhost:3000/api/auth/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
-            });
+    // Tu backend **NO** devuelve token en register
+    // el usuario debe iniciar sesión después
 
-            if (!res.ok) throw new Error("Error al registrar usuario");
+    return userCreated;
+  };
 
-            const data = await res.json();
+  // ===================================================
+  // LOGOUT
+  // ===================================================
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    setUser(null);
+  };
 
-            return { ok: true, message: "Usuario registrado" };
-
-        } catch (error) {
-            return { ok: false, error: error.message };
-        }
-    };
-
-    //  LOGOUT
-    const logout = () => {
-        setUser(null);
-        setToken(null);
-        localStorage.removeItem("authUser");
-        localStorage.removeItem("authToken");
-    };
-
-    return (
-        <AuthContext.Provider
-            value={{
-                user,
-                token,
-                loading,
-                login,
-                register,
-                logout,
-                isAuthenticated: !!user
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+  // ===================================================
+  // Valor final del contexto
+  // ===================================================
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        authLoading,
+        isAuthenticated: !!user,
+        login,
+        register,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
+
+export default AuthProvider;

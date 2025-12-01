@@ -1,42 +1,90 @@
-// src/App.jsx
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { createContext, useState, useEffect } from "react";
 
-// COMPONENTES GLOBALES
-import Navbar from "./components/navbar/navbar.jsx";
-import Footer from "./components/footer/Footer.jsx";
+export const AuthContext = createContext();
 
-// PÁGINAS
-import Home from "./Pages/Home.jsx";
-import LoginAvanzado from "./pages/LoginAvanzado.jsx";
-import RegisterAvanzado from "./pages/RegisterAvanzado.jsx";
-import Productos from "./Pages/Productos.jsx";
-import Carrito from "./Pages/Carrito.jsx";
+export function AuthProvider({ children }) {
 
-import "./App.css";
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
-function App() {
+  // =======================================
+  // Mantener sesión tras recargar la página
+  // =======================================
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+
+    if (!token || !userId) {
+      setAuthLoading(false);
+      return;
+    }
+
+    fetch(`http://localhost:8080/api/users/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Token inválido");
+        return res.json();
+      })
+      .then(data => {
+        setUser(data);
+      })
+      .catch(() => {
+        logout();
+      })
+      .finally(() => setAuthLoading(false));
+  }, []);
+
+  // =======================================
+  // LOGIN
+  // =======================================
+  const login = async (email, password) => {
+    const res = await fetch("http://localhost:8080/api/users/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || "Error al iniciar sesión");
+    }
+
+    const data = await res.json();
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("userId", data.user.id);
+
+    setUser(data.user);
+  };
+
+  // =======================================
+  // LOGOUT
+  // =======================================
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    setUser(null);
+  };
+
+  // =======================================
+  // Determinar rol en base a tu backend
+  // =======================================
+  const role = user
+    ? (user.isAdmin ? "ADMIN" :
+       user.isVendedor ? "VENDEDOR" : "USUARIO")
+    : null;
+
   return (
-    <Router>
-      <Navbar />
-
-      <Routes>
-        {/* Página principal */}
-        <Route path="/" element={<Home />} />
-
-        {/* Autenticación */}
-        <Route path="/login" element={<LoginAvanzado />} />
-        <Route path="/register" element={<RegisterAvanzado />} />
-
-        {/* Productos */}
-        <Route path="/productos" element={<Productos />} />
-
-        {/* Carrito */}
-        <Route path="/carrito" element={<Carrito />} />
-      </Routes>
-
-      <Footer />
-    </Router>
+    <AuthContext.Provider value={{
+      user,
+      login,
+      logout,
+      role,
+      isAuthenticated: !!user,
+      authLoading
+    }}>
+      {children}
+    </AuthContext.Provider>
   );
 }
-
-export default App;
