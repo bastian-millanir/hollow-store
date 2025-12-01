@@ -1,22 +1,42 @@
+// src/App.jsx
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+// COMPONENTES GLOBALES
 import Navbar from "./components/navbar/navbar.jsx";
-import './components/navbar/navbar.css'
-import HeroHeader from "./components/home/header/heroHeader.jsx";
-import Form from "./components/form/Form.jsx";
-import './App.css';
 import Footer from "./components/footer/Footer.jsx";
 
+// PÁGINAS
+import Home from "./Pages/Home.jsx";
+import LoginAvanzado from "./pages/LoginAvanzado.jsx";
+import RegisterAvanzado from "./pages/RegisterAvanzado.jsx";
+import Productos from "./Pages/Productos.jsx";
+import Carrito from "./Pages/Carrito.jsx";
+
+import "./App.css";
 
 function App() {
-
   return (
-    <>
-        <Navbar/>
-        <HeroHeader/>
-        <Form/>
-        <Footer/>
-        
-    </>
-  )
+    <Router>
+      <Navbar />
+
+      <Routes>
+        {/* Página principal */}
+        <Route path="/" element={<Home />} />
+
+        {/* Autenticación */}
+        <Route path="/login" element={<LoginAvanzado />} />
+        <Route path="/register" element={<RegisterAvanzado />} />
+
+        {/* Productos */}
+        <Route path="/productos" element={<Productos />} />
+
+        {/* Carrito */}
+        <Route path="/carrito" element={<Carrito />} />
+      </Routes>
+
+      <Footer />
+    </Router>
+  );
 }
 
-export default App
+export default App;
