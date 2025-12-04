@@ -1,90 +1,44 @@
-import { createContext, useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Navbar from "./components/navbar/navbar.jsx";
+import './components/navbar/navbar.css';
+import HeroHeader from "./components/home/header/heroHeader.jsx";
+import Form from "./components/form/form.jsx";
+import './App.css';
+import Footer from "./components/footer/Footer.jsx";
+import AuthProvider from "./Context/Authcontext.jsx";
 
-export const AuthContext = createContext();
+import Home from "./Pages/Home.jsx";
+import Productos from "./Pages/Productos.jsx";
+import Registro from "./Pages/Registro.jsx";
+import Login from "./Pages/Login.jsx";
+import Perfil from "./Pages/Perfil.jsx";
+import VendedorPanel from "./Pages/VendedorPanel.jsx";
+import PerfilAdmin from "./Pages/PerilAdmin.jsx"; // conservar nombre de archivo existente
 
-export function AuthProvider({ children }) {
+export default function App() {
+    return (
+        <AuthProvider>
+            <BrowserRouter>
+                <div style={{minHeight: "100vh", display: "flex", flexDirection: "column"}}>
+                    <Navbar/>
 
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
+                    <main style={{flex: 1}}>
+                        <Routes>
+                            <Route path="/" element={<><HeroHeader/><Home/></>}/>
+                            <Route path="/productos" element={<Productos/>}/>
+                            <Route path="/contacto" element={<Form/>}/>
+                            <Route path="/about" element={<Home/>}/> {/* placeholder si no existe página About */}
+                            <Route path="/registro" element={<Registro/>}/>
+                            <Route path="/login" element={<Login/>}/>
+                            <Route path="/perfil" element={<Perfil/>}/>
+                            <Route path="/vendedor" element={<VendedorPanel/>}/>
+                            <Route path="/admin" element={<PerfilAdmin/>}/>
+                        </Routes>
+                    </main>
 
-  // =======================================
-  // Mantener sesión tras recargar la página
-  // =======================================
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId");
-
-    if (!token || !userId) {
-      setAuthLoading(false);
-      return;
-    }
-
-    fetch(`http://localhost:8080/api/users/${userId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Token inválido");
-        return res.json();
-      })
-      .then(data => {
-        setUser(data);
-      })
-      .catch(() => {
-        logout();
-      })
-      .finally(() => setAuthLoading(false));
-  }, []);
-
-  // =======================================
-  // LOGIN
-  // =======================================
-  const login = async (email, password) => {
-    const res = await fetch("http://localhost:8080/api/users/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
-    });
-
-    if (!res.ok) {
-      const msg = await res.text();
-      throw new Error(msg || "Error al iniciar sesión");
-    }
-
-    const data = await res.json();
-
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("userId", data.user.id);
-
-    setUser(data.user);
-  };
-
-  // =======================================
-  // LOGOUT
-  // =======================================
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    setUser(null);
-  };
-
-  // =======================================
-  // Determinar rol en base a tu backend
-  // =======================================
-  const role = user
-    ? (user.isAdmin ? "ADMIN" :
-       user.isVendedor ? "VENDEDOR" : "USUARIO")
-    : null;
-
-  return (
-    <AuthContext.Provider value={{
-      user,
-      login,
-      logout,
-      role,
-      isAuthenticated: !!user,
-      authLoading
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
+                    <Footer/>
+                </div>
+            </BrowserRouter>
+        </AuthProvider>
+    );
 }

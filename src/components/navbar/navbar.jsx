@@ -1,3 +1,6 @@
+import {Link} from "react-router-dom";
+import "./navbar.css"
+
 function Navbar() {
     return (
         <>
@@ -11,13 +14,15 @@ function Navbar() {
                     </button>
 
                     <div className="d-none d-lg-flex align-items-center text-center">
-                        <a id="contacto-nav" className="nav-link px-3" href="/contacto">Contacto</a>
-                        <a id="logo-brand-nav" className="navbar-brand mx-3" href="/">Sleepy Hollow</a>
-                        <a id="about-nav" className="nav-link px-3" href="/about">Quienes somos</a>
+                        <Link id="contacto-nav" className="nav-link px-3" to="/contacto">Contacto</Link>
+                        <Link id="about-nav" className="nav-link px-3" to="/about">Quienes somos</Link>
+                        <Link id="logo-brand-nav" className="navbar-brand mx-3" to="/">Sleepy Hollow</Link>
+                        <Link id="registro-nav" className="nav-link px-3" to="/registro">Registro</Link>
+                        <Link id="login-nav" className="nav-link px-3" to="/login">Login</Link>
                     </div>
 
                     <div className="d-lg-none flex-grow-1 text-center">
-                        <a id="logo-brand-nav-mobile" className="navbar-brand" href="/">Sleepy Hollow</a>
+                        <Link id="logo-brand-nav-mobile" className="navbar-brand" to="/">Sleepy Hollow</Link>
                     </div>
 
                 </div>
@@ -33,10 +38,16 @@ function Navbar() {
                     <div className="offcanvas-body">
                         <ul className="navbar-nav justify-content-end flex-grow-1 pe-3">
                             <li className="nav-item">
-                                <a id="contacto-nav-mobile" className="nav-link" href="/contacto">Contacto</a>
+                                <Link id="contacto-nav-mobile" className="nav-link" to="/contacto">Contacto</Link>
                             </li>
                             <li className="nav-item">
-                                <a id="about-nav-mobile" className="nav-link" href="/about">Quienes somos</a>
+                                <Link id="about-nav-mobile" className="nav-link" to="/about">Quienes somos</Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link id="registro-nav-mobile" className="nav-link" to="/registro">Registro</Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link id="login-nav-mobile" className="nav-link" to="/login">Login</Link>
                             </li>
                         </ul>
                     </div>

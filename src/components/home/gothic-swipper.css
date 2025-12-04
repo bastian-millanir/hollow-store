@@ -1,0 +1,100 @@
+/* Estilo gótico oscuro para el swiper */
+.gothic-swiper {
+    font-family: 'Cinzel', serif;
+    color: #e6d9f7;
+    background: linear-gradient(180deg, #0b0710 0%, #120815 60%);
+    padding: 2rem 1rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+.gothic-swiper .swiper-title {
+    color: #d9b8ff;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+    font-weight: 700;
+}
+
+.gothic-swiper .slide-card {
+    height: 100%;
+    display: flex;
+    align-items: stretch;
+}
+
+/* Ajustes para ProductoCard (basados en la card existente) */
+.gothic-swiper .card {
+    background: linear-gradient(180deg, rgba(20,12,25,0.9), rgba(10,6,12,0.85));
+    border: 1px solid rgba(150, 80, 200, 0.12);
+    color: #eee;
+    border-radius: 10px;
+    overflow: hidden;
+    min-height: 360px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.gothic-swiper .card-media {
+    background: radial-gradient(circle at 10% 10%, rgba(120,60,160,0.06), transparent 20%);
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 220px;
+}
+
+.gothic-swiper .card-media img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+}
+
+.gothic-swiper .card-body {
+    padding: 14px;
+}
+
+.gothic-swiper .card-title {
+    color: #f4e7ff;
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+}
+
+.gothic-swiper .card-desc {
+    color: #cdbbe6;
+    font-size: 0.9rem;
+    min-height: 40px;
+}
+
+.gothic-swiper .card-price {
+    color: #ffd7ff;
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+.gothic-swiper .btn-add {
+    background: linear-gradient(90deg,#5b2a7a,#8e44ad);
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.gothic-swiper .btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(200,160,240,0.12);
+    color: #d6c3ef;
+    margin-left: 8px;
+}
+
+/* Paginación */
+.gothic-swiper .swiper-pagination-bullet {
+    background: rgba(200,160,240,0.6);
+    opacity: 0.9;
+}
+
+.gothic-swiper .swiper-pagination-bullet-active {
+    background: #e9d5ff;
+    box-shadow: 0 0 8px rgba(200,160,240,0.3);
+}

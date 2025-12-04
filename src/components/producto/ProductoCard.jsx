@@ -1,23 +1,42 @@
-// src/components/ProductoCard.jsx
-import { useContext } from "react";
-import { CartContext } from "../context/CartContext";
+// src/components/producto/ProductoCard.jsx
+import React from "react";
 
-function ProductoCard({ imagen, nombre, descripcion, precio }) {
-    const { addToCart } = useContext(CartContext);
+export default function ProductoCard({ imagen, nombre, descripcion, precio, stock = 0, onAdd }) {
+  const disponible = Number(stock) > 0;
+  const src = imagen && imagen !== "" ? imagen : "/placeholder.jpg";
+  const formattedPrice = Number(precio ?? 0).toLocaleString("es-CL");
 
-    return (
-        <div className="card bg-dark text-white p-3">
-            <img src={imagen} className="card-img-top" alt={nombre} />
-            <h4>{nombre}</h4>
-            <p>{descripcion}</p>
-            <p>${precio}</p>
-            <button className="btn btn-primary" onClick={() =>
-                addToCart({ nombre, precio, imagen })
-            }>
-                Agregar al carrito
-            </button>
+  return (
+    <article className="card">
+      <div className="card-media">
+        <img
+          src={src}
+          alt={nombre}
+          onError={(e) => {
+            e.currentTarget.src = "/placeholder.jpg";
+          }}
+        />
+      </div>
+
+      <div className="card-body">
+        <h3 className="card-title">{nombre}</h3>
+        <p className="card-desc">{descripcion}</p>
+        <p className="card-price">${formattedPrice}</p>
+
+        <div className="card-actions">
+          <button
+            className="btn btn-add"
+            disabled={!disponible}
+            onClick={() => onAdd && onAdd()}
+          >
+            {disponible ? "Agregar al carrito" : "Sin stock"}
+          </button>
+
+          <button className="btn btn-ghost">Ver detalles</button>
         </div>
-    );
-}
 
-export default ProductoCard;
+        <div className="small text-muted mt-2">Stock: {stock ?? 0}</div>
+      </div>
+    </article>
+  );
+}

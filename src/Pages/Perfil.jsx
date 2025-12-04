@@ -1,212 +1,308 @@
+// File: src/Pages/Perfil.jsx
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectItem } from "@/components/ui/select";
+import { useAuth } from "../Context/Authcontext";
 
+/* Componentes UI mínimos inline para no crear archivos extra */
+function Card({ children, className = "", ...props }) {
+  return (
+    <div className={["card bg-dark text-white", className].filter(Boolean).join(" ")} {...props}>
+      {children}
+    </div>
+  );
+}
+
+function CardContent({ children, className = "", ...props }) {
+  return (
+    <div className={["card-body", className].filter(Boolean).join(" ")} {...props}>
+      {children}
+    </div>
+  );
+}
+
+function Button({ children, className = "btn btn-primary", ...props }) {
+  return (
+    <button className={className} {...props}>
+      {children}
+    </button>
+  );
+}
+
+function Input({ label, id, value, onChange, type = "text", className = "form-control", ...props }) {
+  return (
+    <div className="mb-3">
+      {label && <label htmlFor={id} className="form-label text-white">{label}</label>}
+      <input id={id} type={type} value={value || ""} onChange={onChange} className={className} {...props} />
+    </div>
+  );
+}
+
+function Select({ label, id, value, onChange, children, className = "form-select", ...props }) {
+  return (
+    <div className="mb-3">
+      {label && <label htmlFor={id} className="form-label text-white">{label}</label>}
+      <select id={id} value={value || ""} onChange={onChange} className={className} {...props}>
+        {children}
+      </select>
+    </div>
+  );
+}
+
+function SelectItem({ value, children, ...props }) {
+  return (
+    <option value={value} {...props}>
+      {children}
+    </option>
+  );
+}
+
+/* Componente Perfil */
 export default function Perfil() {
+  const { logout: authLogout } = useAuth();
   const [user, setUser] = useState(null);
+  const [form, setForm] = useState({
+    nombre: "",
+    email: "",
+    direccion: "",
+    regionId: "",
+    comunaId: ""
+  });
   const [regions, setRegions] = useState([]);
   const [comunas, setComunas] = useState([]);
   const [filteredComunas, setFilteredComunas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
-  // -----------------------------
-  // Cargar usuario desde storage
-  // -----------------------------
+  // Cargar usuario desde storage al montar
   useEffect(() => {
-    const stored = localStorage.getItem("user") || sessionStorage.getItem("user");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      setUser(parsed);
+    const raw = localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (raw) {
+      try {
+        const u = JSON.parse(raw);
+        setUser(u);
+        setForm({
+          nombre: u.nombre || u.name || "",
+          email: u.email || "",
+          direccion: u.direccion || u.address || "",
+          regionId: u.region?.id || "",
+          comunaId: u.comuna?.id || ""
+        });
+      } catch (e) {
+        console.warn("No se pudo parsear user desde storage", e);
+      }
     }
-    setLoading(false);
   }, []);
 
-  // -----------------------------
-  // Cargar regiones y comunas
-  // -----------------------------
+  // Cargar regiones y comunas desde API
   useEffect(() => {
-    fetch("http://localhost:8080/api/region")
-      .then((res) => res.json())
-      .then(setRegions);
-
-    fetch("http://localhost:8080/api/comuna")
-      .then((res) => res.json())
-      .then(setComunas);
-  }, []);
-
-  // Filtrar comunas según región
-  useEffect(() => {
-    if (user?.region?.id) {
-      setFilteredComunas(
-        comunas.filter((c) => c.regionId === user.region.id)
-      );
+    if (!token) {
+      setLoading(false);
+      return;
     }
-  }, [user?.region, comunas]);
 
-  // -----------------------------
-  // Logout
-  // -----------------------------
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("user");
-    window.location.href = "/login";
-  };
+    const fetchData = async () => {
+      try {
+        const [rRes, cRes] = await Promise.all([
+          fetch("http://localhost:8080/api/region", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("http://localhost:8080/api/comuna", { headers: { Authorization: `Bearer ${token}` } })
+        ]);
 
-  // -----------------------------
-  // Actualizar usuario
-  // -----------------------------
-  const handleUpdate = async (e) => {
-    e.preventDefault();
+        if (rRes.ok) {
+          const rData = await rRes.json();
+          setRegions(rData);
+        } else {
+          setRegions([]);
+        }
 
-    const body = {
-      ...user,
-      region: { id: user.region.id },
-      comuna: { id: user.comuna.id },
+        if (cRes.ok) {
+          const cData = await cRes.json();
+          // Normalizar: algunas APIs usan regionId o region.id
+          const normalized = cData.map((c) => ({
+            ...c,
+            regionId: c.regionId ?? c.region?.id ?? c.regionId
+          }));
+          setComunas(normalized);
+        } else {
+          setComunas([]);
+        }
+      } catch (err) {
+        console.error("Error cargando regiones/comunas", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const res = await fetch(`http://localhost:8080/api/users/${user.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
+    fetchData();
+  }, [token]);
 
-    if (!res.ok) return alert("Error actualizando perfil");
+  // Filtrar comunas cuando cambia regionId o comunas
+  useEffect(() => {
+    if (!form.regionId) {
+      setFilteredComunas([]);
+      return;
+    }
+    setFilteredComunas(comunas.filter((c) => String(c.regionId) === String(form.regionId)));
+  }, [form.regionId, comunas]);
 
-    alert("Perfil actualizado correctamente");
-
-    localStorage.setItem("user", JSON.stringify(user));
+  const handleChange = (field) => (e) => {
+    const value = e.target.value;
+    setForm((f) => ({ ...f, [field]: value }));
   };
 
-  if (loading) return <p className="text-white text-center">Cargando perfil...</p>;
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    if (!user) {
+      setMessage("Usuario no cargado.");
+      return;
+    }
+
+    setSaving(true);
+
+    const payload = {
+      nombre: form.nombre,
+      email: form.email,
+      direccion: form.direccion,
+      regionId: form.regionId || null,
+      comunaId: form.comunaId || null
+    };
+
+    try {
+      // Ajusta la URL según tu API; aquí usamos /api/users/{id}
+      const res = await fetch(`http://localhost:8080/api/users/${user.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : ""
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || "Error al actualizar usuario");
+      }
+
+      const updated = await res.json();
+
+      // Actualizar storage local/session y estado
+      if (localStorage.getItem("user")) {
+        localStorage.setItem("user", JSON.stringify(updated));
+      } else {
+        sessionStorage.setItem("user", JSON.stringify(updated));
+      }
+      setUser(updated);
+      setMessage("Perfil actualizado correctamente.");
+    } catch (err) {
+      console.error(err);
+      setMessage(err.message || "Error al actualizar perfil.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogout = () => {
+    // Preferir logout del contexto si existe
+    try {
+      if (authLogout) {
+        authLogout();
+      } else {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("user");
+        window.location.href = "/";
+      }
+    } catch {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+      window.location.href = "/";
+    }
+  };
+
+  if (loading) {
+    return <p className="text-white text-center py-5">Cargando perfil...</p>;
+  }
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-black via-[#0b0b0b] to-[#1a1a1a] text-white p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-3xl"
-      >
-        <Card className="bg-[#111]/60 backdrop-blur-xl border border-gray-700 shadow-2xl">
-          <CardContent className="p-8">
+    <div className="container py-5">
+      <div className="row justify-content-center">
+        <div className="col-12 col-md-8">
+          <Card className="p-3">
+            <CardContent>
+              <h2 className="mb-4">Mi Perfil</h2>
 
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold">Mi Perfil</h1>
-              <Button variant="destructive" onClick={logout}>
-                Cerrar Sesión
-              </Button>
-            </div>
-
-            {/* Avatar */}
-            <div className="flex flex-col items-center mb-8">
-              <motion.img
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.4 }}
-                src={
-                  user.avatar ||
-                  "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                }
-                alt="avatar"
-                className="w-28 h-28 rounded-full border-2 border-gray-600 shadow-xl"
-              />
-
-              <Input
-                className="mt-4 w-64 bg-black/40 text-white border-gray-600"
-                placeholder="URL del avatar"
-                value={user.avatar || ""}
-                onChange={(e) => setUser({ ...user, avatar: e.target.value })}
-              />
-            </div>
-
-            {/* Formulario */}
-            <form onSubmit={handleUpdate} className="grid grid-cols-1 gap-5">
-
-              <div>
-                <label className="text-gray-300">Nombre</label>
+              <form onSubmit={handleUpdate}>
                 <Input
-                  value={user.name}
-                  onChange={(e) => setUser({ ...user, name: e.target.value })}
-                  className="mt-1 bg-black/40 text-white border-gray-600"
+                  id="nombre"
+                  label="Nombre"
+                  value={form.nombre}
+                  onChange={handleChange("nombre")}
                 />
-              </div>
 
-              <div>
-                <label className="text-gray-300">Email</label>
                 <Input
-                  value={user.email}
-                  onChange={(e) => setUser({ ...user, email: e.target.value })}
-                  className="mt-1 bg-black/40 text-white border-gray-600"
+                  id="email"
+                  label="Email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange("email")}
                 />
-              </div>
 
-              <div>
-                <label className="text-gray-300">Dirección</label>
                 <Input
-                  value={user.address || ""}
-                  onChange={(e) => setUser({ ...user, address: e.target.value })}
-                  className="mt-1 bg-black/40 text-white border-gray-600"
+                  id="direccion"
+                  label="Dirección"
+                  value={form.direccion}
+                  onChange={handleChange("direccion")}
                 />
-              </div>
 
-              {/* Región */}
-              <div>
-                <label className="text-gray-300">Región</label>
                 <Select
-                  value={user.region?.id?.toString() || ""}
-                  onValueChange={(value) =>
-                    setUser({
-                      ...user,
-                      region: regions.find((r) => r.id == value),
-                    })
-                  }
+                  id="region"
+                  label="Región"
+                  value={form.regionId}
+                  onChange={handleChange("regionId")}
                 >
+                  <SelectItem value="">Selecciona una región</SelectItem>
                   {regions.map((r) => (
-                    <SelectItem key={r.id} value={r.id.toString()}>
-                      {r.name}
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.nombre || r.name}
                     </SelectItem>
                   ))}
                 </Select>
-              </div>
 
-              {/* Comuna filtrada */}
-              <div>
-                <label className="text-gray-300">Comuna</label>
                 <Select
-                  value={user.comuna?.id?.toString() || ""}
-                  onValueChange={(value) =>
-                    setUser({
-                      ...user,
-                      comuna: comunas.find((c) => c.id == value),
-                    })
-                  }
+                  id="comuna"
+                  label="Comuna"
+                  value={form.comunaId}
+                  onChange={handleChange("comunaId")}
                 >
+                  <SelectItem value="">Selecciona una comuna</SelectItem>
                   {filteredComunas.map((c) => (
-                    <SelectItem key={c.id} value={c.id.toString()}>
-                      {c.name}
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.nombre || c.name}
                     </SelectItem>
                   ))}
                 </Select>
-              </div>
 
-              <Button type="submit" className="mt-4 bg-purple-600 hover:bg-purple-700">
-                Guardar Cambios
-              </Button>
+                <div className="d-flex gap-2">
+                  <Button type="submit" className="btn btn-primary" disabled={saving}>
+                    {saving ? "Guardando..." : "Guardar cambios"}
+                  </Button>
 
-            </form>
-          </CardContent>
-        </Card>
-      </motion.div>
+                  <Button type="button" className="btn btn-secondary" onClick={handleLogout}>
+                    Cerrar sesión
+                  </Button>
+                </div>
+
+                {message && <div className="mt-3 text-info">{message}</div>}
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

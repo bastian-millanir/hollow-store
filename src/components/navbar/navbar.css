@@ -9,7 +9,7 @@
     font-size: 24px;
 }
 
-#about-nav, #contacto-nav {
+#about-nav, #contacto-nav, #registro-nav, #login-nav {
     color: white;
     font-weight: bold;
     font-size: 18px;

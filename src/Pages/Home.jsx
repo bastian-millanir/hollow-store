@@ -1,151 +1,81 @@
-import { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
-
 import "swiper/css";
 import "swiper/css/pagination";
+import "../components/home/gothic-swipper.css";
+import ProductoCard from "../components/producto/ProductoCard.jsx";
 
-import { AuthContext } from "../Context/Authcontext";
-import { CartContext } from "../Context/Cartcontext";
-import "./home.css";
+export default function GothicSwiper() {
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-export default function Home() {
-    const { user, logout } = useContext(AuthContext);
-    const { addToCart } = useContext(CartContext);
+  useEffect(() => {
+    let mounted = true;
+    fetch("http://localhost:8080/api/products")
+      .then((res) => {
+        if (!res.ok) throw new Error("No se pudieron cargar productos");
+        return res.json();
+      })
+      .then((data) => {
+        if (!mounted) return;
+        setProductos(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        if (!mounted) return;
+        setError(err.message || "Error desconocido");
+      })
+      .finally(() => {
+        if (!mounted) return;
+        setLoading(false);
+      });
+    return () => (mounted = false);
+  }, []);
 
-    const [featured, setFeatured] = useState([]);
+  if (loading) return <p className="text-center py-4 text-white">Cargando slider...</p>;
+  if (error) return <p className="text-center py-4 text-danger">Error: {error}</p>;
+  if (productos.length === 0) return null;
 
-    useEffect(() => {
-        // Puedes reemplazar esto con fetch al backend
-        setFeatured([
-            {
-                id: 1,
-                nombre: "Polera Dark Edition",
-                precio: 19990,
-                imagen: "https://via.placeholder.com/600x400/171722/8e44ad?text=Polera",
-            },
-            {
-                id: 2,
-                nombre: "Chaqueta Nocturna",
-                precio: 39990,
-                imagen: "https://via.placeholder.com/600x400/171722/6f42c1?text=Chaqueta",
-            },
-            {
-                id: 3,
-                nombre: "Zapatillas Shadow",
-                precio: 45990,
-                imagen: "https://via.placeholder.com/600x400/171722/4b2354?text=Zapatillas",
-            }
-        ]);
-    }, []);
+  return (
+    <section className="gothic-swiper container py-5">
+      <h2 className="swiper-title text-center mb-4">Novedades Oscuras</h2>
 
-    return (
-        <main className="home-root">
+      <Swiper
+        modules={[Autoplay, Pagination]}
+        spaceBetween={20}
+        loop={true}
+        pagination={{ clickable: true }}
+        autoplay={{ delay: 3000, disableOnInteraction: false }}
+        breakpoints={{
+          0: { slidesPerView: 1 },
+          768: { slidesPerView: 2 },
+          1200: { slidesPerView: 3 },
+        }}
+      >
+        {productos.map((p) => {
+          const imagen = p.imagen || p.imageUrl || p.image || p.imagenUrl || "/placeholder.jpg";
+          const nombre = p.nombre || p.name || "Sin nombre";
+          const descripcion = p.descripcion || p.description || "";
+          const precio = p.precio ?? p.price ?? 0;
+          const stock = p.stock ?? p.cantidad ?? 0;
+          const id = p.id ?? p._id;
 
-            {/* ──────────────────────────────── Banner superior ─────────────────────────────── */}
-            <div id="banner-anuncios-home">
-                  40% de descuento en temporada Dark — Envíos a todo Chile
-            </div>
-
-            {/* ──────────────────────────────── HERO ─────────────────────────────── */}
-            <section className="hero">
-                <div className="hero-inner">
-                    <h1 className="brand-title">
-                        Dark<span className="brand-accent">Store</span>
-                    </h1>
-
-                    <p className="hero-sub">
-                        Moda urbana oscura — calidad premium y envíos rápidos.
-                    </p>
-
-                    <div className="hero-actions">
-                        {!user ? (
-                            <>
-                                <Link to="/login" className="btn btn-outline">
-                                    Iniciar sesión
-                                </Link>
-                                <Link to="/register" className="btn btn-primary">
-                                    Registrarse
-                                </Link>
-                            </>
-                        ) : (
-                            <>
-                                <span className="welcome">
-                                    Hola, <strong>{user.nombre || user.email}</strong>
-                                </span>
-                                <button className="btn btn-outline" onClick={logout}>
-                                    Cerrar sesión
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </section>
-
-            {/* ──────────────────────────────── CARRUSEL DE OFERTAS ─────────────────────────────── */}
-            <div className="carousel-container">
-                <Swiper
-                    modules={[Autoplay, Pagination]}
-                    autoplay={{ delay: 2500, disableOnInteraction: false }}
-                    pagination={{ clickable: true }}
-                    spaceBetween={20}
-                    slidesPerView={1}
-                    loop
-                    className="swiper-dark"
-                >
-                    <SwiperSlide>
-                        <div className="slide-item">
-                            <h3>Oferta 1: Poleras Dark 2x1</h3>
-                        </div>
-                    </SwiperSlide>
-
-                    <SwiperSlide>
-                        <div className="slide-item">
-                            <h3>Envíos gratis sobre $30.000</h3>
-                        </div>
-                    </SwiperSlide>
-
-                    <SwiperSlide>
-                        <div className="slide-item">
-                            <h3>Nueva colección Nocturna disponible</h3>
-                        </div>
-                    </SwiperSlide>
-                </Swiper>
-            </div>
-
-            {/* ──────────────────────────────── PRODUCTOS DESTACADOS ─────────────────────────────── */}
-            <section className="featured container">
-                <h2 className="section-title">Productos destacados</h2>
-
-                <div className="grid">
-                    {featured.map((p) => (
-                        <article className="card" key={p.id}>
-                            <div className="card-media">
-                                <img src={p.imagen} alt={p.nombre} />
-                            </div>
-
-                            <div className="card-body">
-                                <h3 className="card-title">{p.nombre}</h3>
-                                <p className="card-price">${p.precio.toLocaleString()}</p>
-
-                                <div className="card-actions">
-                                    <button
-                                        className="btn btn-add"
-                                        onClick={() => addToCart(p)}
-                                    >
-                                        Agregar al carrito
-                                    </button>
-
-                                    <Link to={`/productos/${p.id}`} className="btn btn-ghost">
-                                        Ver detalles
-                                    </Link>
-                                </div>
-                            </div>
-                        </article>
-                    ))}
-                </div>
-            </section>
-        </main>
-    );
+          return (
+            <SwiperSlide key={id}>
+              <div className="slide-card">
+                <ProductoCard
+                  imagen={imagen}
+                  nombre={nombre}
+                  descripcion={descripcion}
+                  precio={precio}
+                  stock={stock}
+                />
+              </div>
+            </SwiperSlide>
+          );
+        })}
+      </Swiper>
+    </section>
+  );
 }
